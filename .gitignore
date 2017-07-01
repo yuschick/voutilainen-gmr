@@ -1,0 +1,5 @@
+Thumbs.db
+node_modules
+*.map
+.DS_Store
+*.lock
