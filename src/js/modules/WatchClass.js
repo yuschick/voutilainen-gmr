@@ -2,7 +2,7 @@ class Watch {
   constructor(hands, offset = null, format = 12) {
     try {
       if (!hands)
-        throw "The Watch class needs an objbect containing the HTML elements for the hands.";
+        throw "The Watch class needs an object containing the HTML elements for the hands.";
       }
     catch (errorMsg) {
       console.error(errorMsg);
@@ -32,13 +32,27 @@ class Watch {
     this.interval = null;
     this.crownActive = false;
     this.manualTime = false;
+    this.settingTime = false;
     this.setSecondary = false;
 
     this.init();
   }
 
-  updateManualTime() {
-    this.manualTime = !this.manualTime;
+  toggleSettingTime() {
+    this.settingTime = !this.settingTime;
+  }
+
+  toggleSecondaryTime() {
+    this.setSecondary = !this.setSecondary;
+  }
+
+  updateToManualTime() {
+    this.manualTime = true;
+  }
+
+  toggleBlackout() {
+    document.querySelector('.blackout').classList.toggle('active');
+    document.getElementById('Main_Dial').classList.toggle('faded');
   }
 
   stopInterval() {
@@ -72,49 +86,50 @@ class Watch {
     this.currentTime = currentTime;
   }
 
-  setSecondaryTime() {
-    this.setSecondary = !this.setSecondary;
-  }
-
-  rotateHands(dir = 'forward') {
-    let hourOffset = this.setSecondary
-      ? this.rotateValues.hourJump
-      : this.rotateValues.hoursRotateValOffset;
+  rotateHands(dir = null) {
     let rotateVal;
-    if (this.hands.hour && (this.manualTime && !this.interval || (this.interval && this.currentTime.seconds === 0))) {
-      if (dir === 'forward') {
-        this.hands.hour.style.transform = `rotate(${this.getCurrentRotateValue(this.hands.hour) + hourOffset}deg)`;
-      } else {
-        this.hands.hour.style.transform = `rotate(${this.getCurrentRotateValue(this.hands.hour) - hourOffset}deg)`;
-      }
-    } else if (this.hands.hour && !this.manualTime) {
-      rotateVal = (this.currentTime.hours * this.rotateValues.hoursRotateVal) + (this.currentTime.minutes * this.rotateValues.hoursRotateValOffset);
 
-      if (rotateVal === 0) {
-        this.hands.hour.classList.add('jumping');
-      } else if (rotateVal > 0 && this.hands.hour.classList.contains('jumping')) {
-        this.hands.hour.classList.remove('jumping');
+    if (this.hands.hour) {
+      let hourOffset = this.setSecondary
+        ? this.rotateValues.hourJump
+        : this.rotateValues.hoursRotateValOffset;
+      rotateVal = this.getCurrentRotateValue(this.hands.hour);
+      if (this.settingTime) {
+        if (dir) {
+          rotateVal -= hourOffset;
+        } else {
+          rotateVal += hourOffset;
+        }
+      } else if (this.manualTime) {
+        if (this.currentTime.seconds === 0) {
+          rotateVal = this.getCurrentRotateValue(this.hands.hour) + this.rotateValues.hoursRotateValOffset;
+        }
+      } else {
+        rotateVal = (this.currentTime.hours * this.rotateValues.hoursRotateVal) + (this.currentTime.minutes * this.rotateValues.hoursRotateValOffset);
       }
 
       this.hands.hour.style.transform = `rotate(${rotateVal}deg)`;
     }
-    if (this.hands.minute && (this.manualTime && !this.interval || (this.interval && this.currentTime.seconds === 0))) {
-      if (dir === 'forward') {
-        this.hands.minute.style.transform = `rotate(${this.getCurrentRotateValue(this.hands.minute) + this.rotateValues.minutesRotateVal}deg)`;
-      } else {
-        this.hands.minute.style.transform = `rotate(${this.getCurrentRotateValue(this.hands.minute) - this.rotateValues.minutesRotateVal}deg)`;
-      }
-    } else if (this.hands.minute && !this.manualTime) {
-      rotateVal = this.currentTime.minutes * this.rotateValues.minutesRotateVal;
 
-      if (rotateVal === 0) {
-        this.hands.minute.classList.add('jumping');
-      } else if (rotateVal > 0 && this.hands.minute.classList.contains('jumping')) {
-        this.hands.minute.classList.remove('jumping');
+    if (this.hands.minute) {
+      rotateVal = this.getCurrentRotateValue(this.hands.minute);
+      if (this.settingTime) {
+        if (dir) {
+          rotateVal -= this.rotateValues.minutesRotateVal;
+        } else {
+          rotateVal += this.rotateValues.minutesRotateVal;
+        }
+      } else if (this.manualTime) {
+        if (this.currentTime.seconds === 0) {
+          rotateVal += this.rotateValues.minutesRotateVal;
+        }
+      } else {
+        rotateVal = this.currentTime.minutes * this.rotateValues.minutesRotateVal;
       }
 
       this.hands.minute.style.transform = `rotate(${rotateVal}deg)`;
     }
+
     if (this.hands.second) {
       rotateVal = this.currentTime.seconds * this.rotateValues.minutesRotateVal;
 

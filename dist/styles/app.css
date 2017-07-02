@@ -166,6 +166,12 @@ p {
         -ms-transform: translateX(4px);
             transform: translateX(4px); }
 
+.faded {
+  opacity: .1;
+  -webkit-transition: opacity 0.5s ease;
+  -o-transition: opacity 0.5s ease;
+  transition: opacity 0.5s ease; }
+
 .st0 {
   fill: #111111; }
 
@@ -509,9 +515,9 @@ p {
 .blackout {
   opacity: 0;
   fill: #000;
-  -webkit-transition: opacity .25s ease;
-  -o-transition: opacity .25s ease;
-  transition: opacity .25s ease; }
+  -webkit-transition: opacity 0.25s ease;
+  -o-transition: opacity 0.25s ease;
+  transition: opacity 0.25s ease; }
   .blackout.active {
     opacity: 0.7; }
 

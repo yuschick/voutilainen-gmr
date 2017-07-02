@@ -9,20 +9,35 @@ const Watch = require('./modules/WatchClass');
   let crownActive = false;
   let setSecondary = false;
   const crown = document.getElementById('crown');
-  crown.addEventListener('click', () => {
+
+  function toggleCrown() {
     crownActive = !crownActive;
     if (crownActive) {
       crown.classList.add('active');
       primary.stopInterval();
+      primary.toggleSettingTime();
       secondary.stopInterval();
-      primary.updateManualTime();
-      secondary.updateManualTime();
+      secondary.toggleSettingTime();
     } else {
       crown.classList.remove('active');
       primary.startInterval();
+      primary.toggleSettingTime();
+      primary.updateToManualTime();
       secondary.startInterval();
+      secondary.toggleSettingTime();
+      secondary.updateToManualTime();
+
+      if (setSecondary) {
+        secondary.toggleBlackout();
+        setSecondary = !setSecondary;
+      }
     }
+  }
+
+  crown.addEventListener('click', () => {
+    toggleCrown();
   });
+
   /**
   Power Reserve
   **/
@@ -64,8 +79,13 @@ const Watch = require('./modules/WatchClass');
   }
   const reserve = new PowerReserve('power-reserve-hand');
   window.addEventListener('keydown', () => {
-    if (event.keyCode === 37) {
-      reserve.incrementReserve();
+    switch (event.keyCode) {
+      case 37:
+        reserve.incrementReserve();
+        break;
+      case 13:
+        toggleCrown();
+        break;
     }
 
     if (crownActive) {
@@ -83,9 +103,8 @@ const Watch = require('./modules/WatchClass');
           break;
         case 39:
           setSecondary = !setSecondary;
-          secondary.setSecondaryTime();
-          let blackout = document.querySelector('.blackout');
-          blackout.classList.toggle('active');
+          secondary.toggleSecondaryTime();
+          secondary.toggleBlackout();
           break;
         case 40:
           if (setSecondary) {

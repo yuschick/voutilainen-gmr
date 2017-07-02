@@ -27,6 +27,11 @@
   }
 }
 
+.faded {
+  opacity: 0.1;
+  transition: opacity 0.5s ease;
+}
+
 .st0 {
   fill: #111111;
 }
