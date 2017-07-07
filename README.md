@@ -17,9 +17,9 @@ This is the repo for my SVG recreation of the Kari Voutilainen GMR watch. I recr
 [Kari Voutilainen](http://www.voutilainen.ch/)
 
 ### ToDo
-- [ ] Extract the Watch class out further to begin work on TickTock v2
- - [ ] Define a proper scope for TickTock
-- [ ] Consider removing the `jumping`class reliance and offload that to a broader JS function
+- [x] Extract the Watch class out further to begin work on TickTock v2
+ - [x] Define a proper scope for TickTock
+- [x] Consider removing the `jumping`class reliance and offload that to a broader JS function
 - [x] Improve naming of `updateManualTime`, `setSecondaryTime`, and `updateSettingTime`
 - [x] Fix issue with setting time manually multiple times
 - [x] Enable the crown with click and/or the enter key

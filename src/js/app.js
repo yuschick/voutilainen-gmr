@@ -1,147 +1,60 @@
-const Watch = require('./modules/WatchClass');
-
 (function() {
-  "use strict"
+  'use strict';
 
-  /**
-  Crown
-  **/
-  let crownActive = false;
-  let setSecondary = false;
-  const crown = document.getElementById('crown');
-
-  function toggleCrown() {
-    crownActive = !crownActive;
-    if (crownActive) {
-      crown.classList.add('active');
-      primary.stopInterval();
-      primary.toggleSettingTime();
-      secondary.stopInterval();
-      secondary.toggleSettingTime();
-    } else {
-      crown.classList.remove('active');
-      primary.startInterval();
-      primary.toggleSettingTime();
-      primary.updateToManualTime();
-      secondary.startInterval();
-      secondary.toggleSettingTime();
-      secondary.updateToManualTime();
-
-      if (setSecondary) {
-        secondary.toggleBlackout();
-        setSecondary = !setSecondary;
+  const Watch = require('./modules/Watch');
+  const settings = {
+    dials: [
+      {
+        id: 'local-time',
+        hands: {
+          hour: 'primary-hours-hand',
+          minute: 'primary-minutes-hand'
+        },
+        offset: '+3'
+      }, {
+        id: 'home-time',
+        hands: {
+          hour: 'secondary-hours-hand',
+          second: 'secondary-minutes-hand'
+        },
+        offset: '-4',
+        format: 24
       }
+    ],
+    reserve: {
+      id: 'power-reserve-hand',
+      range: [-90, 90]
+    },
+    crown: {
+      id: 'crown',
+      blackout: [
+        {
+          selector: '.blackout',
+          className: 'active'
+        }, {
+          selector: '.main_dial',
+          className: 'faded'
+        }
+      ]
     }
-  }
-
-  crown.addEventListener('click', () => {
-    toggleCrown();
-  });
-
-  /**
-  Power Reserve
-  **/
-  class PowerReserve {
-    constructor(id) {
-      this.element = document.getElementById(id);
-      this.interval = null;
-      this.init();
-    }
-
-    decrementReserve() {
-      let currentRotate = primary.getCurrentRotateValue(this.element);
-
-      if (currentRotate <= -90) {
-        this.interval = null;
-        primary.stopInterval();
-        secondary.stopInterval();
-      } else {
-        let newRotate = Number(currentRotate) - 0.25;
-        this.element.style.transform = `rotate(${newRotate}deg)`;
-      }
-    }
-
-    incrementReserve() {
-      let currentRotate = primary.getCurrentRotateValue(this.element);
-
-      if (currentRotate <= 89.5 && currentRotate >= -90) {
-        let newRotate = Number(currentRotate) + 0.5;
-        this.element.style.transform = `rotate(${newRotate}deg)`;
-      }
-    }
-
-    init() {
-      this.element.style.transform = 'rotate(90deg)';
-      this.interval = setInterval(() => {
-        this.decrementReserve();
-      }, 1000);
-    }
-  }
-  const reserve = new PowerReserve('power-reserve-hand');
-  window.addEventListener('keydown', () => {
-    switch (event.keyCode) {
-      case 37:
-        reserve.incrementReserve();
-        break;
-      case 13:
-        toggleCrown();
-        break;
-    }
-
-    if (crownActive) {
-      switch (event.keyCode) {
-        case 37:
-          reserve.incrementReserve();
-          break;
-        case 38:
-          if (setSecondary) {
-            secondary.rotateHands();
-          } else {
-            primary.rotateHands();
-            secondary.rotateHands();
-          }
-          break;
-        case 39:
-          setSecondary = !setSecondary;
-          secondary.toggleSecondaryTime();
-          secondary.toggleBlackout();
-          break;
-        case 40:
-          if (setSecondary) {
-            secondary.rotateHands('back');
-          } else {
-            primary.rotateHands('back');
-            secondary.rotateHands('back');
-          }
-          break;
-      }
-    }
-  });
-
-  /**
-  Dials
-  **/
-  const localhands = {
-    hour: document.getElementById('primary-hours-hand'),
-    minute: document.getElementById('primary-minutes-hand')
-  };
-  const homeHands = {
-    hour: document.getElementById('secondary-hours-hand'),
-    second: document.getElementById('secondary-minutes-hand')
   };
 
-  let primary = new Watch(localhands, '+3');
-  let secondary = new Watch(homeHands, '-4', 24);
+  let VoutilainenGMR = new Watch(settings);
 
+  /**
+  Custom Form Settings
+  **/
   const homeTime = document.getElementById('home-field');
   const localTime = document.getElementById('local-field');
 
   homeTime.addEventListener('change', () => {
-    secondary.stopInterval();
-    secondary = new Watch(homeHands, homeTime.value.toString(), 24);
+    VoutilainenGMR.stopInterval();
+    settings.dials[1].offset = homeTime.value.toString();
+    VoutilainenGMR = new Watch(settings);
   });
   localTime.addEventListener('change', () => {
-    primary.stopInterval();
-    primary = new Watch(localhands, localTime.value.toString(), 12);
+    VoutilainenGMR.stopInterval();
+    settings.dials[0].offset = localTime.value.toString();
+    VoutilainenGMR = new Watch(settings);
   });
 })();

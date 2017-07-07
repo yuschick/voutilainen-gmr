@@ -1,22 +1,35 @@
-class Watch {
-  constructor(hands, offset = null, format = 12) {
+const util = require('../util');
+
+class Dial {
+  constructor(settings, parentWatch) {
     try {
-      if (!hands)
-        throw "The Watch class needs an object containing the HTML elements for the hands.";
+      if (!settings.hands)
+        throw "The Dial class needs an object containing the HTML elements for the hands.";
       }
     catch (errorMsg) {
       console.error(errorMsg);
       return;
     }
+    this.id = settings.id;
+    this.hands = {};
+    if (settings.hands.hour)
+      this.hands.hour = document.getElementById(settings.hands.hour);
+    if (settings.hands.minute)
+      this.hands.minute = document.getElementById(settings.hands.minute);
+    if (settings.hands.second)
+      this.hands.second = document.getElementById(settings.hands.second);
 
-    this.rightNow = new Date();
-    this.currentTime = {};
-    this.gmtOffset = offset
-      ? offset.toString()
+    this.parent = parentWatch;
+
+    this.format = settings.formnat
+      ? settings.format
+      : 12;
+    this.gmtOffset = settings.offset
+      ? settings.offset.toString()
       : null;
 
-    this.hands = hands;
-    this.format = format;
+    this.rightNow = this.parent.rightNow;
+    this.currentTime = {};
 
     this.rotateValues = {
       hoursRotateVal: this.format === 12
@@ -34,31 +47,25 @@ class Watch {
     this.manualTime = false;
     this.settingTime = false;
     this.setSecondary = false;
+    this.transition = null;
 
     this.init();
   }
 
-  toggleSettingTime() {
-    this.settingTime = !this.settingTime;
+  toggleActiveCrown() {
+    this.crownActive = !this.crownActive;
   }
 
   toggleSecondaryTime() {
     this.setSecondary = !this.setSecondary;
   }
 
+  toggleSettingTime() {
+    this.settingTime = !this.settingTime;
+  }
+
   updateToManualTime() {
     this.manualTime = true;
-  }
-
-  toggleBlackout() {
-    document.querySelector('.blackout').classList.toggle('active');
-    document.getElementById('Main_Dial').classList.toggle('faded');
-  }
-
-  stopInterval() {
-    this.crownActive = true;
-    clearInterval(this.interval);
-    this.interval = null;
   }
 
   startInterval() {
@@ -66,7 +73,11 @@ class Watch {
       this.getCurrentTime();
       this.rotateHands();
     }, 1000);
-    this.crownActive = false;
+  }
+
+  stopInterval() {
+    clearInterval(this.interval);
+    this.interval = null;
   }
 
   getCurrentTime() {
@@ -93,7 +104,7 @@ class Watch {
       let hourOffset = this.setSecondary
         ? this.rotateValues.hourJump
         : this.rotateValues.hoursRotateValOffset;
-      rotateVal = this.getCurrentRotateValue(this.hands.hour);
+      rotateVal = util.getCurrentRotateValue(this.hands.hour);
       if (this.settingTime) {
         if (dir) {
           rotateVal -= hourOffset;
@@ -102,7 +113,7 @@ class Watch {
         }
       } else if (this.manualTime) {
         if (this.currentTime.seconds === 0) {
-          rotateVal = this.getCurrentRotateValue(this.hands.hour) + this.rotateValues.hoursRotateValOffset;
+          rotateVal = util.getCurrentRotateValue(this.hands.hour) + this.rotateValues.hoursRotateValOffset;
         }
       } else {
         rotateVal = (this.currentTime.hours * this.rotateValues.hoursRotateVal) + (this.currentTime.minutes * this.rotateValues.hoursRotateValOffset);
@@ -112,7 +123,7 @@ class Watch {
     }
 
     if (this.hands.minute) {
-      rotateVal = this.getCurrentRotateValue(this.hands.minute);
+      rotateVal = util.getCurrentRotateValue(this.hands.minute);
       if (this.settingTime) {
         if (dir) {
           rotateVal -= this.rotateValues.minutesRotateVal;
@@ -134,19 +145,14 @@ class Watch {
       rotateVal = this.currentTime.seconds * this.rotateValues.minutesRotateVal;
 
       if (rotateVal === 0) {
-        this.hands.second.classList.add('jumping');
-      } else if (rotateVal > 0 && this.hands.second.classList.contains('jumping')) {
-        this.hands.second.classList.remove('jumping');
+        this.transition = this.hands.second.style.transition;
+        this.hands.second.style.transition = 'none';
+      } else if (rotateVal > 0 && this.hands.second.style.transition === 'none') {
+        this.hands.second.style.transition = this.transition;
       }
 
       this.hands.second.style.transform = `rotate(${rotateVal}deg)`;
     }
-  }
-
-  getCurrentRotateValue(el) {
-    let val = el.style.transform;
-    let num = val.replace('rotate(', '').replace('deg)', '');
-    return Number(num);
   }
 
   init() {
@@ -154,9 +160,7 @@ class Watch {
       this.getCurrentTime();
       this.rotateHands();
     }, 350);
-
-    this.startInterval();
   }
 }
 
-module.exports = Watch;
+module.exports = Dial;

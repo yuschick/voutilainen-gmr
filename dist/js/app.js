@@ -46,175 +46,66 @@
 
 	'use strict';
 
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	var Watch = __webpack_require__(1);
-
 	(function () {
-	  "use strict";
+	  'use strict';
 
-	  /**
-	  Crown
-	  **/
-
-	  var crownActive = false;
-	  var setSecondary = false;
-	  var crown = document.getElementById('crown');
-
-	  function toggleCrown() {
-	    crownActive = !crownActive;
-	    if (crownActive) {
-	      crown.classList.add('active');
-	      primary.stopInterval();
-	      primary.toggleSettingTime();
-	      secondary.stopInterval();
-	      secondary.toggleSettingTime();
-	    } else {
-	      crown.classList.remove('active');
-	      primary.startInterval();
-	      primary.toggleSettingTime();
-	      primary.updateToManualTime();
-	      secondary.startInterval();
-	      secondary.toggleSettingTime();
-	      secondary.updateToManualTime();
-
-	      if (setSecondary) {
-	        secondary.toggleBlackout();
-	        setSecondary = !setSecondary;
-	      }
-	    }
-	  }
-
-	  crown.addEventListener('click', function () {
-	    toggleCrown();
-	  });
-
-	  /**
-	  Power Reserve
-	  **/
-
-	  var PowerReserve = function () {
-	    function PowerReserve(id) {
-	      _classCallCheck(this, PowerReserve);
-
-	      this.element = document.getElementById(id);
-	      this.interval = null;
-	      this.init();
-	    }
-
-	    _createClass(PowerReserve, [{
-	      key: 'decrementReserve',
-	      value: function decrementReserve() {
-	        var currentRotate = primary.getCurrentRotateValue(this.element);
-
-	        if (currentRotate <= -90) {
-	          this.interval = null;
-	          primary.stopInterval();
-	          secondary.stopInterval();
-	        } else {
-	          var newRotate = Number(currentRotate) - 0.25;
-	          this.element.style.transform = 'rotate(' + newRotate + 'deg)';
-	        }
-	      }
+	  var Watch = __webpack_require__(1);
+	  var settings = {
+	    dials: [{
+	      id: 'local-time',
+	      hands: {
+	        hour: 'primary-hours-hand',
+	        minute: 'primary-minutes-hand'
+	      },
+	      offset: '+3'
 	    }, {
-	      key: 'incrementReserve',
-	      value: function incrementReserve() {
-	        var currentRotate = primary.getCurrentRotateValue(this.element);
-
-	        if (currentRotate <= 89.5 && currentRotate >= -90) {
-	          var newRotate = Number(currentRotate) + 0.5;
-	          this.element.style.transform = 'rotate(' + newRotate + 'deg)';
-	        }
-	      }
-	    }, {
-	      key: 'init',
-	      value: function init() {
-	        var _this = this;
-
-	        this.element.style.transform = 'rotate(90deg)';
-	        this.interval = setInterval(function () {
-	          _this.decrementReserve();
-	        }, 1000);
-	      }
-	    }]);
-
-	    return PowerReserve;
-	  }();
-
-	  var reserve = new PowerReserve('power-reserve-hand');
-	  window.addEventListener('keydown', function () {
-	    switch (event.keyCode) {
-	      case 37:
-	        reserve.incrementReserve();
-	        break;
-	      case 13:
-	        toggleCrown();
-	        break;
+	      id: 'home-time',
+	      hands: {
+	        hour: 'secondary-hours-hand',
+	        second: 'secondary-minutes-hand'
+	      },
+	      offset: '-4',
+	      format: 24
+	    }],
+	    reserve: {
+	      id: 'power-reserve-hand',
+	      range: [-90, 90]
+	    },
+	    crown: {
+	      id: 'crown',
+	      blackout: [{
+	        selector: '.blackout',
+	        className: 'active'
+	      }, {
+	        selector: '.main_dial',
+	        className: 'faded'
+	      }]
 	    }
-
-	    if (crownActive) {
-	      switch (event.keyCode) {
-	        case 37:
-	          reserve.incrementReserve();
-	          break;
-	        case 38:
-	          if (setSecondary) {
-	            secondary.rotateHands();
-	          } else {
-	            primary.rotateHands();
-	            secondary.rotateHands();
-	          }
-	          break;
-	        case 39:
-	          setSecondary = !setSecondary;
-	          secondary.toggleSecondaryTime();
-	          secondary.toggleBlackout();
-	          break;
-	        case 40:
-	          if (setSecondary) {
-	            secondary.rotateHands('back');
-	          } else {
-	            primary.rotateHands('back');
-	            secondary.rotateHands('back');
-	          }
-	          break;
-	      }
-	    }
-	  });
-
-	  /**
-	  Dials
-	  **/
-	  var localhands = {
-	    hour: document.getElementById('primary-hours-hand'),
-	    minute: document.getElementById('primary-minutes-hand')
-	  };
-	  var homeHands = {
-	    hour: document.getElementById('secondary-hours-hand'),
-	    second: document.getElementById('secondary-minutes-hand')
 	  };
 
-	  var primary = new Watch(localhands, '+3');
-	  var secondary = new Watch(homeHands, '-4', 24);
+	  var VoutilainenGMR = new Watch(settings);
 
+	  /**
+	  Custom Form Settings
+	  **/
 	  var homeTime = document.getElementById('home-field');
 	  var localTime = document.getElementById('local-field');
 
 	  homeTime.addEventListener('change', function () {
-	    secondary.stopInterval();
-	    secondary = new Watch(homeHands, homeTime.value.toString(), 24);
+	    VoutilainenGMR.stopInterval();
+	    settings.dials[1].offset = homeTime.value.toString();
+	    VoutilainenGMR = new Watch(settings);
 	  });
 	  localTime.addEventListener('change', function () {
-	    primary.stopInterval();
-	    primary = new Watch(localhands, localTime.value.toString(), 12);
+	    VoutilainenGMR.stopInterval();
+	    settings.dials[0].offset = localTime.value.toString();
+	    VoutilainenGMR = new Watch(settings);
 	  });
 	})();
 
 /***/ }),
 /* 1 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
 	'use strict';
 
@@ -222,26 +113,171 @@
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+	var Dial = __webpack_require__(2);
+	var Crown = __webpack_require__(4);
+	var PowerReserve = __webpack_require__(5);
+	var MoonPhase = __webpack_require__(6);
+
 	var Watch = function () {
-	  function Watch(hands) {
-	    var offset = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-	    var format = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 12;
+	  function Watch(settings) {
+	    var _this = this;
 
 	    _classCallCheck(this, Watch);
 
+	    this.dialInstances = [];
+	    this.globalInterval = null;
+	    this.rightNow = new Date();
+
+	    settings.dials.forEach(function (dial) {
+	      var tempDial = new Dial(dial, _this);
+	      _this.dialInstances.push(tempDial);
+	    });
+
+	    if (settings.crown) {
+	      this.crown = new Crown(settings.crown, this);
+	    }
+
+	    if (settings.reserve) {
+	      this.powerReserve = new PowerReserve(settings.reserve, this);
+	    }
+
+	    if (settings.moonphase) {
+	      this.moonphase = new MoonPhase(settings.moonphase, this);
+	    }
+
+	    this.init();
+	  }
+
+	  _createClass(Watch, [{
+	    key: 'keyBindings',
+	    value: function keyBindings() {
+	      var _this2 = this;
+
+	      window.addEventListener('keydown', function () {
+	        switch (event.keyCode) {
+	          case 37:
+	            if (_this2.powerReserve) _this2.powerReserve.incrementReserve();
+	            break;
+	          case 13:
+	            if (_this2.crown) _this2.crown.toggleCrown();
+	            break;
+	        }
+
+	        if (_this2.crown) {
+	          if (_this2.crown.crownActive) {
+	            switch (event.keyCode) {
+	              case 37:
+	                if (_this2.powerReserve) _this2.powerReserve.incrementReserve();
+	                break;
+	              case 38:
+	                _this2.dialInstances.forEach(function (dial) {
+	                  if (dial.setSecondary && dial.id === _this2.dialInstances[_this2.dialInstances.length - 1].id) {
+	                    dial.rotateHands();
+	                  } else if (!dial.setSecondary) {
+	                    dial.rotateHands();
+	                  }
+	                });
+	                break;
+	              case 39:
+	                if (_this2.crown) _this2.crown.toggleBlackout();
+
+	                _this2.dialInstances.forEach(function (dial) {
+	                  dial.toggleSecondaryTime();
+	                });
+	                break;
+	              case 40:
+	                _this2.dialInstances.forEach(function (dial) {
+	                  if (dial.setSecondary && dial.id === _this2.dialInstances[_this2.dialInstances.length - 1].id) {
+	                    dial.rotateHands('back');
+	                  } else if (!dial.setSecondary) {
+	                    dial.rotateHands('back');
+	                  }
+	                });
+	                break;
+	            }
+	          }
+	        }
+	      });
+	    }
+	  }, {
+	    key: 'startInterval',
+	    value: function startInterval() {
+	      var _this3 = this;
+
+	      this.globalInterval = setInterval(function () {
+
+	        _this3.dialInstances.forEach(function (dial) {
+	          dial.getCurrentTime();
+	          dial.rotateHands();
+	        });
+
+	        if (_this3.powerReserve) {
+	          _this3.powerReserve.decrementReserve();
+	        }
+
+	        /**
+	        To be accurate, yes, the moonphase should stop if the power reserve empties
+	        But is that worth making this call every second?
+	        **/
+	        if (_this3.moonphase) {
+	          _this3.moonphase.getCurrentPhase();
+	        }
+	      }, 1000);
+	    }
+	  }, {
+	    key: 'stopInterval',
+	    value: function stopInterval() {
+	      clearInterval(this.globalInterval);
+	      this.globalInterval = null;
+	    }
+	  }, {
+	    key: 'init',
+	    value: function init() {
+	      this.startInterval();
+	      this.keyBindings();
+	    }
+	  }]);
+
+	  return Watch;
+	}();
+
+	module.exports = Watch;
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var util = __webpack_require__(3);
+
+	var Dial = function () {
+	  function Dial(settings, parentWatch) {
+	    _classCallCheck(this, Dial);
+
 	    try {
-	      if (!hands) throw "The Watch class needs an object containing the HTML elements for the hands.";
+	      if (!settings.hands) throw "The Dial class needs an object containing the HTML elements for the hands.";
 	    } catch (errorMsg) {
 	      console.error(errorMsg);
 	      return;
 	    }
+	    this.id = settings.id;
+	    this.hands = {};
+	    if (settings.hands.hour) this.hands.hour = document.getElementById(settings.hands.hour);
+	    if (settings.hands.minute) this.hands.minute = document.getElementById(settings.hands.minute);
+	    if (settings.hands.second) this.hands.second = document.getElementById(settings.hands.second);
 
-	    this.rightNow = new Date();
+	    this.parent = parentWatch;
+
+	    this.format = settings.formnat ? settings.format : 12;
+	    this.gmtOffset = settings.offset ? settings.offset.toString() : null;
+
+	    this.rightNow = this.parent.rightNow;
 	    this.currentTime = {};
-	    this.gmtOffset = offset ? offset.toString() : null;
-
-	    this.hands = hands;
-	    this.format = format;
 
 	    this.rotateValues = {
 	      hoursRotateVal: this.format === 12 ? 30 : 15,
@@ -255,14 +291,15 @@
 	    this.manualTime = false;
 	    this.settingTime = false;
 	    this.setSecondary = false;
+	    this.transition = null;
 
 	    this.init();
 	  }
 
-	  _createClass(Watch, [{
-	    key: 'toggleSettingTime',
-	    value: function toggleSettingTime() {
-	      this.settingTime = !this.settingTime;
+	  _createClass(Dial, [{
+	    key: 'toggleActiveCrown',
+	    value: function toggleActiveCrown() {
+	      this.crownActive = !this.crownActive;
 	    }
 	  }, {
 	    key: 'toggleSecondaryTime',
@@ -270,22 +307,14 @@
 	      this.setSecondary = !this.setSecondary;
 	    }
 	  }, {
+	    key: 'toggleSettingTime',
+	    value: function toggleSettingTime() {
+	      this.settingTime = !this.settingTime;
+	    }
+	  }, {
 	    key: 'updateToManualTime',
 	    value: function updateToManualTime() {
 	      this.manualTime = true;
-	    }
-	  }, {
-	    key: 'toggleBlackout',
-	    value: function toggleBlackout() {
-	      document.querySelector('.blackout').classList.toggle('active');
-	      document.getElementById('Main_Dial').classList.toggle('faded');
-	    }
-	  }, {
-	    key: 'stopInterval',
-	    value: function stopInterval() {
-	      this.crownActive = true;
-	      clearInterval(this.interval);
-	      this.interval = null;
 	    }
 	  }, {
 	    key: 'startInterval',
@@ -296,7 +325,12 @@
 	        _this.getCurrentTime();
 	        _this.rotateHands();
 	      }, 1000);
-	      this.crownActive = false;
+	    }
+	  }, {
+	    key: 'stopInterval',
+	    value: function stopInterval() {
+	      clearInterval(this.interval);
+	      this.interval = null;
 	    }
 	  }, {
 	    key: 'getCurrentTime',
@@ -325,7 +359,7 @@
 
 	      if (this.hands.hour) {
 	        var hourOffset = this.setSecondary ? this.rotateValues.hourJump : this.rotateValues.hoursRotateValOffset;
-	        rotateVal = this.getCurrentRotateValue(this.hands.hour);
+	        rotateVal = util.getCurrentRotateValue(this.hands.hour);
 	        if (this.settingTime) {
 	          if (dir) {
 	            rotateVal -= hourOffset;
@@ -334,7 +368,7 @@
 	          }
 	        } else if (this.manualTime) {
 	          if (this.currentTime.seconds === 0) {
-	            rotateVal = this.getCurrentRotateValue(this.hands.hour) + this.rotateValues.hoursRotateValOffset;
+	            rotateVal = util.getCurrentRotateValue(this.hands.hour) + this.rotateValues.hoursRotateValOffset;
 	          }
 	        } else {
 	          rotateVal = this.currentTime.hours * this.rotateValues.hoursRotateVal + this.currentTime.minutes * this.rotateValues.hoursRotateValOffset;
@@ -344,7 +378,7 @@
 	      }
 
 	      if (this.hands.minute) {
-	        rotateVal = this.getCurrentRotateValue(this.hands.minute);
+	        rotateVal = util.getCurrentRotateValue(this.hands.minute);
 	        if (this.settingTime) {
 	          if (dir) {
 	            rotateVal -= this.rotateValues.minutesRotateVal;
@@ -366,20 +400,14 @@
 	        rotateVal = this.currentTime.seconds * this.rotateValues.minutesRotateVal;
 
 	        if (rotateVal === 0) {
-	          this.hands.second.classList.add('jumping');
-	        } else if (rotateVal > 0 && this.hands.second.classList.contains('jumping')) {
-	          this.hands.second.classList.remove('jumping');
+	          this.transition = this.hands.second.style.transition;
+	          this.hands.second.style.transition = 'none';
+	        } else if (rotateVal > 0 && this.hands.second.style.transition === 'none') {
+	          this.hands.second.style.transition = this.transition;
 	        }
 
 	        this.hands.second.style.transform = 'rotate(' + rotateVal + 'deg)';
 	      }
-	    }
-	  }, {
-	    key: 'getCurrentRotateValue',
-	    value: function getCurrentRotateValue(el) {
-	      var val = el.style.transform;
-	      var num = val.replace('rotate(', '').replace('deg)', '');
-	      return Number(num);
 	    }
 	  }, {
 	    key: 'init',
@@ -390,15 +418,286 @@
 	        _this2.getCurrentTime();
 	        _this2.rotateHands();
 	      }, 350);
-
-	      this.startInterval();
 	    }
 	  }]);
 
-	  return Watch;
+	  return Dial;
 	}();
 
-	module.exports = Watch;
+	module.exports = Dial;
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports) {
+
+	'use strict';
+
+	module.exports = {
+	  getCurrentRotateValue: function getCurrentRotateValue(el) {
+	    var val = el.style.transform;
+	    var num = val.replace('rotate(', '').replace('deg)', '');
+	    return Number(num);
+	  }
+	};
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports) {
+
+	'use strict';
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var Crown = function () {
+	  function Crown(settings, parentWatch) {
+	    _classCallCheck(this, Crown);
+
+	    this.crown = document.getElementById(settings.id);
+	    this.blackoutElements = settings.blackout;
+	    this.parent = parentWatch;
+	    this.crownActive = false;
+	    this.setSecondary = false;
+	    this.init();
+	  }
+
+	  _createClass(Crown, [{
+	    key: 'toggleBlackout',
+	    value: function toggleBlackout() {
+	      this.setSecondary = !this.setSecondary;
+	      this.blackoutElements.forEach(function (el) {
+	        document.querySelector(el.selector).classList.toggle(el.className);
+	      });
+	    }
+	  }, {
+	    key: 'toggleCrown',
+	    value: function toggleCrown() {
+	      this.crownActive = !this.crownActive;
+	      this.parent.dialInstances.forEach(function (instance) {
+	        if (instance.toggleActiveCrown) instance.toggleActiveCrown();
+	        if (instance.setSecondary) instance.toggleSecondaryTime();
+	      });
+
+	      if (this.crownActive) {
+	        this.parent.stopInterval();
+	        this.crown.classList.add('active');
+	        this.parent.dialInstances.forEach(function (instance) {
+	          if (instance.toggleSettingTime) instance.toggleSettingTime();
+	        });
+	      } else {
+	        this.parent.startInterval();
+	        this.crown.classList.remove('active');
+	        if (this.setSecondary) {
+	          this.toggleBlackout();
+	        }
+	        this.parent.dialInstances.forEach(function (instance) {
+	          if (instance.toggleSettingTime) instance.toggleSettingTime();
+	          if (instance.updateToManualTime) instance.updateToManualTime();
+	        });
+	      }
+	    }
+	  }, {
+	    key: 'init',
+	    value: function init() {
+	      var _this = this;
+
+	      this.crown.addEventListener('click', function () {
+	        _this.toggleCrown();
+	      });
+	    }
+	  }]);
+
+	  return Crown;
+	}();
+
+	module.exports = Crown;
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var util = __webpack_require__(3);
+
+	var PowerReserve = function () {
+	  function PowerReserve(settings, parentWatch) {
+	    _classCallCheck(this, PowerReserve);
+
+	    this.element = document.getElementById(settings.id);
+	    this.interval = null;
+	    this.parent = parentWatch;
+	    this.minAngle = settings.range[0];
+	    this.maxAngle = settings.range[1];
+	    this.increment = 0.5;
+	    this.init();
+	  }
+
+	  _createClass(PowerReserve, [{
+	    key: 'decrementReserve',
+	    value: function decrementReserve() {
+	      var currentRotate = util.getCurrentRotateValue(this.element);
+
+	      if (currentRotate <= this.minAngle) {
+	        this.parent.stopInterval();
+	      } else {
+	        var newRotate = Number(currentRotate) - this.increment / 2;
+	        this.element.style.transform = 'rotate(' + newRotate + 'deg)';
+	      }
+	    }
+	  }, {
+	    key: 'incrementReserve',
+	    value: function incrementReserve() {
+	      var currentRotate = util.getCurrentRotateValue(this.element);
+
+	      if (currentRotate <= this.maxAngle - this.increment && currentRotate >= this.minAngle) {
+	        var newRotate = Number(currentRotate) + this.increment;
+	        this.element.style.transform = 'rotate(' + newRotate + 'deg)';
+	      }
+	    }
+	  }, {
+	    key: 'startInterval',
+	    value: function startInterval() {
+	      var _this = this;
+
+	      this.interval = setInterval(function () {
+	        _this.decrementReserve();
+	      }, 1000);
+	    }
+	  }, {
+	    key: 'stopInterval',
+	    value: function stopInterval() {
+	      clearInterval(this.interval);
+	      this.interval = null;
+	    }
+	  }, {
+	    key: 'init',
+	    value: function init() {
+	      this.element.style.transform = 'rotate(' + this.maxAngle + 'deg)';
+	    }
+	  }]);
+
+	  return PowerReserve;
+	}();
+
+	module.exports = PowerReserve;
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports) {
+
+	'use strict';
+
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var MoonPhase = function () {
+	  function MoonPhase(settings, parentWatch) {
+	    _classCallCheck(this, MoonPhase);
+
+	    this.parent = parentWatch;
+	    this.element = document.getElementById(settings.id);
+	    this.invert = settings.invert || false;
+
+	    this.init();
+	  }
+
+	  _createClass(MoonPhase, [{
+	    key: 'rotateDisc',
+	    value: function rotateDisc(val) {
+	      val = this.invert ? val * -1 : val;
+	      this.element.style.transform = 'rotate(' + val + 'deg)';
+	    }
+	  }, {
+	    key: 'getCurrentPhase',
+	    value: function getCurrentPhase() {
+	      /* Shouts to:  http://jivebay.com/calculating-the-moon-phase/ */
+	      var rightNow = this.parent.rightNow,
+	          year = rightNow.getFullYear(),
+	          month = rightNow.getMonth(),
+	          date = rightNow.getDate(),
+	          c = void 0,
+	          e = void 0,
+	          jd = void 0,
+	          b = void 0,
+	          diff = void 0;
+
+	      if (month < 3) {
+	        year--;
+	        month += 12;
+	      }
+
+	      month++;
+
+	      c = 365.25 * year;
+	      e = 30.6 * month;
+	      jd = c + e + date - 694039.09;
+	      jd /= 29.5305882;
+	      b = parseInt(jd);
+	      jd -= b;
+	      b = Math.round(jd * 8);
+
+	      diff = jd * 10;
+	      diff = +diff.toFixed(2);
+
+	      if (b >= 8) {
+	        b = 0;
+	      }
+
+	      switch (b) {
+	        case 0:
+	          // New Moon
+	          this.rotateDisc(180);
+	          break;
+	        case 1:
+	          // Waxing Crescent
+	          this.rotateDisc(22.5);
+	          break;
+	        case 2:
+	          // First Quarter
+	          this.rotateDisc(45);
+	          break;
+	        case 3:
+	          // Waxing Gibbous
+	          this.rotateDisc(67.5);
+	          break;
+	        case 4:
+	          // Full
+	          this.rotateDisc(0);
+	          break;
+	        case 5:
+	          // Waning Gibbous
+	          this.rotateDisc(-22.5);
+	          break;
+	        case 6:
+	          // Third quarter
+	          this.rotateDisc(-45);
+	          break;
+	        case 7:
+	          // Waning Crescent
+	          this.rotateDisc(-67.5);
+	          break;
+	        default:
+	          console.log('Error');
+	      }
+	    }
+	  }, {
+	    key: 'init',
+	    value: function init() {
+	      this.getCurrentPhase();
+	    }
+	  }]);
+
+	  return MoonPhase;
+	}();
+
+	module.exports = MoonPhase;
 
 /***/ })
 /******/ ]);
