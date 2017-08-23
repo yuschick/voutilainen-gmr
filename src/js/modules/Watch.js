@@ -30,7 +30,8 @@ class Watch {
   }
 
   keyBindings() {
-    window.addEventListener('keydown', () => {
+    window.addEventListener('keydown', (e) => {
+      e.preventDefault();
       switch (event.keyCode) {
         case 37:
           if (this.powerReserve)

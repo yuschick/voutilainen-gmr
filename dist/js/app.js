@@ -153,7 +153,8 @@
 	    value: function keyBindings() {
 	      var _this2 = this;
 
-	      window.addEventListener('keydown', function () {
+	      window.addEventListener('keydown', function (e) {
+	        e.preventDefault();
 	        switch (event.keyCode) {
 	          case 37:
 	            if (_this2.powerReserve) _this2.powerReserve.incrementReserve();
@@ -273,7 +274,7 @@
 
 	    this.parent = parentWatch;
 
-	    this.format = settings.formnat ? settings.format : 12;
+	    this.format = settings.format ? settings.format : 12;
 	    this.gmtOffset = settings.offset ? settings.offset.toString() : null;
 
 	    this.rightNow = this.parent.rightNow;

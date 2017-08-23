@@ -100,7 +100,8 @@
   }
 
   keyBindings() {
-    <span class="hljs-built_in">window</span>.addEventListener(<span class="hljs-string">'keydown'</span>, () =&gt; {
+    <span class="hljs-built_in">window</span>.addEventListener(<span class="hljs-string">'keydown'</span>, (e) =&gt; {
+      e.preventDefault();
       <span class="hljs-keyword">switch</span> (event.keyCode) {
         <span class="hljs-keyword">case</span> <span class="hljs-number">37</span>:
           <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.powerReserve)
