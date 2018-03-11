@@ -1,10 +1,5 @@
 .hand {
-  transform-origin: bottom center;
   transition: transform 0.15s linear;
-
-  &.offset {
-    transform-origin: center;
-  }
 
   &.sweep {
     transition-duration: 1s;
@@ -15,6 +10,22 @@
     transition-duration: 0s;
     transition-timing-function: linear;
   }
+}
+
+#primary-hours-hand {
+  transform-origin: 200px 450px;
+}
+
+#primary-minutes-hand {
+  transform-origin: 192px 448px;
+}
+
+#secondary-hours-hand, #secondary-minutes-hand {
+  transform-origin: 191px 520px;
+}
+
+#power-reserve-hand {
+  transform-origin: 200px 373px;
 }
 
 #crown {

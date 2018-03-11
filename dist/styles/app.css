@@ -124,18 +124,11 @@ p {
   margin: 1rem 0; }
 
 .hand {
-  -webkit-transform-origin: bottom center;
-      -ms-transform-origin: bottom center;
-          transform-origin: bottom center;
   -webkit-transition: -webkit-transform 0.15s linear;
   transition: -webkit-transform 0.15s linear;
   -o-transition: transform 0.15s linear;
   transition: transform 0.15s linear;
   transition: transform 0.15s linear, -webkit-transform 0.15s linear; }
-  .hand.offset {
-    -webkit-transform-origin: center;
-        -ms-transform-origin: center;
-            transform-origin: center; }
   .hand.sweep {
     -webkit-transition-duration: 1s;
          -o-transition-duration: 1s;
@@ -150,6 +143,26 @@ p {
     -webkit-transition-timing-function: linear;
          -o-transition-timing-function: linear;
             transition-timing-function: linear; }
+
+#primary-hours-hand {
+  -webkit-transform-origin: 200px 450px;
+      -ms-transform-origin: 200px 450px;
+          transform-origin: 200px 450px; }
+
+#primary-minutes-hand {
+  -webkit-transform-origin: 192px 448px;
+      -ms-transform-origin: 192px 448px;
+          transform-origin: 192px 448px; }
+
+#secondary-hours-hand, #secondary-minutes-hand {
+  -webkit-transform-origin: 191px 520px;
+      -ms-transform-origin: 191px 520px;
+          transform-origin: 191px 520px; }
+
+#power-reserve-hand {
+  -webkit-transform-origin: 200px 373px;
+      -ms-transform-origin: 200px 373px;
+          transform-origin: 200px 373px; }
 
 #crown {
   cursor: pointer;
@@ -167,7 +180,7 @@ p {
             transform: translateX(4px); }
 
 .faded {
-  opacity: .1;
+  opacity: 0.1;
   -webkit-transition: opacity 0.5s ease;
   -o-transition: opacity 0.5s ease;
   transition: opacity 0.5s ease; }
